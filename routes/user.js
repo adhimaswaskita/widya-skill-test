@@ -8,23 +8,31 @@ router_user.post('/register', (req, res, next)=>{
     const {name, email, password, konfirmasi, gender} = req.body;
 
     if (password == konfirmasi) {
-        bcrypt.hash(password, 10, (err, hash)=>{
+        bcrypt.hash(password, 10,async (err, hash)=>{
             try {
                 if(err) {
                     throw err;
                 }
                 else {
-                    users.create({
-                        name,
-                        email,
-                        password: hash,
-                        gender
-                    }).then(() => {
-                        res.status(200).json({
-                            status : 200,
-                            message : `Berhasil register`,
+                    const isSigned = await users.findOne({email})
+                    if (isSigned) {
+                        res.status(400).json({
+                            status: 400,
+                            message: `data dengan email ${email} telah terdaftar !`
                         })
-                    })
+                    } else {
+                        users.create({
+                            name,
+                            email,
+                            password: hash,
+                            gender
+                        }).then(() => {
+                            res.status(200).json({
+                                status : 200,
+                                message : `Berhasil register`,
+                            })
+                        })
+                    }
                 }
             } catch (error) {
                 throw (error)
